@@ -1,0 +1,10 @@
+[meta]
+name = "Twitch Chat Bot Renewed"
+author = "bmx22c"
+category = "Streaming"
+
+#siteid = 109
+version = "1"
+
+[script]
+imports = [ "Time.as", "Formatting.as", "Icons.as" ]
