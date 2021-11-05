@@ -28,7 +28,7 @@ You will need to register with your Ubisoft account (the same as your Trackmania
 `Scripts` > `Twitch Chat Bot` > `Authenticate`
 
 It will open a new browser window where you will need to connect with your Ubisoft account.
-Once connected, you will land on a page that will display **your key**.
+Once connected, you will land on a page that will display **your key**.  
 **⚠ Make sure to not lose your key !**
 
 Once you got your key, you'll need to put it in the Twitch Chat Bot Renewed settings page under:
