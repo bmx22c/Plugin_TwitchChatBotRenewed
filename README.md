@@ -12,14 +12,8 @@ C:\Users\<username>\OpenplanetNext\Plugins\TwitchChatBot
 
 So that it looks like this:
 ```
-Scripts/
-├─ TwitchChatBot/
-│  ├─ src
-│  │  ├─ Main.as
-│  │  ├─ Main.as.sig
-│  ├─ info.toml
-│  ├─ info.toml.sig
-│  ├─ README.md
+Plugins/
+├─ TwitchChatBot.op
 ```
 
 ## Settings
@@ -131,12 +125,12 @@ If you want me to remove your data from the database, just send me a message on 
 
 ## Special thanks
 Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79) (Prayge one day we'll be able to use other plugins functions)  
-Thanks to **toolinfinite** for the help on the Trackmania API  
+Thanks to **tooInfinite** for the help on the Trackmania API  
 Thanks to **Miss** for the server informations (YOINKED it from the Discord script)
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome on [this repo](https://github.com/bmx22c/Plugin_TwitchChatBotRenewed). For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
