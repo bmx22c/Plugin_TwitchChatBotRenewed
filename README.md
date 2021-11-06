@@ -1,6 +1,6 @@
 # Twitch Chat Bot Renewed
 
-Twitch Chat Bot Renewed is a plugin that will send informations regarding maps, server, link to the map, personal best times and checkpoints to a database that you can configure in your Stream Platform (Streamlabs, Streamelements or else).  
+Twitch Chat Bot Renewed is a plugin that will send information regarding maps, server, link to the map, personal best times and checkpoints to a database that you can configure in your Stream Platform (Streamlabs, Streamelements or else).  
 You can also configure every field with custom ones.
 
 ## Installation
@@ -46,7 +46,7 @@ List of all `Fixed` strings:
 - Checkpoint: `⏩ Current CP: {crt_cp}/{max_cp}.`
 
 ### Commands
-You can enable or disable specific commands. This means that informations about what you haven't selected will not be sent to the server anymore. 
+You can enable or disable specific commands. This means that information about what you haven't selected will not be sent to the server anymore. 
 
 ### Strings
 You can configure every string that will be posted in the chat.
@@ -58,7 +58,7 @@ You will have variables available for every command:
 - Server:
     - `{name}` - server name
     - `{nbr_player}` - current player count
-    - `{max_player}` - number of slots of current serveur
+    - `{max_player}` - number of slots of current server
 - Personal best time:
     - `{pb}` - personal best time
 - URL:
@@ -126,7 +126,7 @@ If you want me to remove your data from the database, just send me a message on 
 ## Special thanks
 Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79) (Prayge one day we'll be able to use other plugins functions)  
 Thanks to **tooInfinite** for the help on the Trackmania API  
-Thanks to **Miss** for the server informations (YOINKED it from the Discord script)
+Thanks to **Miss** for the server information (YOINKED it from the Discord script)
 
 
 ## Contributing
