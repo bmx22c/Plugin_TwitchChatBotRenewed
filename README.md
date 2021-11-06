@@ -38,7 +38,7 @@ If everthing worked, you'll see a notification telling you that your are connect
 `Scripts` > `Twitch Chat Bot` > `Active` (if `Active` is checked then it's good).
 
 You can change the `Formatting` to either `Fixed` or `Custom`.  
-You can only select `Custom` if you have filled all the fields in `Strings` tab.
+**⚠ You can only select `Custom` if you have filled all the fields in `Strings` tab.**
 
 List of all `Fixed` strings:
 - On a map: `⏩ I am currently playing {name} by {author}.`
@@ -118,7 +118,11 @@ To use this plugin on your prefered stream platform, add a new command with the 
     - `url`
     - `cp`
 - Username: Your Trackmania username
-- Private key: Your private key that have been given to you while authenticating 
+- Private key: Your private key that have been given to you while authenticating
+
+## What's different between this plugin and my old plugin "Twitch Chat Bot"
+[Twitch Chat Bot](https://openplanet.nl/files/113) was using [Nsgr Twitch Base](https://openplanet.nl/files/93) as a dependency, so it means that it was an old plugin format. It was also working in a completely different way. It was connecting to the chat and was listening to any new messages, and answered as the streamer (ex: `bmx22c`) in the chat, instead of being Streamlabs or else.
+This **Twitch Chat Bot Renewed** is more of a bridge between a database and Streamlabs than as a bot in itself.
 
 ## Legal Notice
 While loggin in with your Ubisoft account, I will only get your Ubisoft username.  
