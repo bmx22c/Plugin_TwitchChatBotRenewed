@@ -1,16 +1,16 @@
 # Twitch Chat Bot Renewed
 
-Twitch Chat Bot Renewed is a plugin that will send information regarding maps, server, link to the map, personal best times and checkpoints to a database that you can access from your Stream Platform (Streamlabs, Streamelements or anything else).
+Twitch Chat Bot Renewed is a plugin that will send information regarding maps, server, link to the map, personal best times and checkpoints to a database that you can access from your Stream Platform (Streamlabs, Streamelements or anything else).  
 You can also configure every field with custom messages.
 
 ## Installation
 
-Put the files in your OpenPlanet directory which is located here:
+Put the files in your OpenPlanet directory which is located here:  
 ```
 C:\Users\<username>\OpenplanetNext\Plugins\TwitchChatBot
 ```
 
-So that it looks like this:
+So that it looks like this:  
 ```
 Plugins/
 ├─ TwitchChatBot.op
@@ -18,20 +18,20 @@ Plugins/
 
 ## Settings
 ### Parameters
-You will need to register with your Ubisoft account (the same as your Trackmania account otherwise it won't work) by clicking on:
+You will need to register with your Ubisoft account (the same as your Trackmania account otherwise it won't work) by clicking on:  
 `Scripts` > `Twitch Chat Bot` > `Authenticate`
 
-This will open a new browser window where you will need to log into your Ubisoft account.
-Once connected, you will land on a page that will display **your key**.
+This will open a new browser window where you will need to log into your Ubisoft account.  
+Once connected, you will land on a page that will display **your key**.  
 **⚠ Make sure to not lose your key!**
 
-Once you got your key, you'll need to input it on the Twitch Chat Bot Renewed settings page:
+Once you got your key, you'll need to input it on the Twitch Chat Bot Renewed settings page:  
 `Openplanet` > `Settings` > `Twitch Chat Bot Renewed` > `General` > `Key`
 
-If everything worked, you'll see a notification telling you that you are connected. You can double-check by going into:
+If everything worked, you'll see a notification telling you that you are connected. You can double-check by going into:  
 `Scripts` > `Twitch Chat Bot` > `Active` (if `Active` is checked then it's good)
 
-You can change the `Formatting` to either `Fixed` or `Custom`.
+You can change the `Formatting` to either `Fixed` or `Custom`.  
 **⚠ You can only select `Custom` if you have filled in all the fields in the `Strings` tab.**
 
 List of all `Fixed` strings:
@@ -74,34 +74,34 @@ _Note: You can paste emojis from outside Openplanet. They will be displayed as `
 ## Usage
 Once properly configured, just launch Trackmania and it should connect to the server automatically.
 
-You become inactive once you close Trackmania **or** you manually uncheck the `Active` button.
-Once you are inactive, the API will answer with either your predefined message or a fixed one:
+You become inactive once you close Trackmania **or** you manually uncheck the `Active` button.  
+Once you are inactive, the API will answer with either your predefined message or a fixed one:  
 `⚠ I am not active.`
 
 ## Stream Platform
-To use this plugin on your preferred stream platform, add a new command with the prefix that you want and add an API request to:
-**Nightbot:**
+To use this plugin on your preferred stream platform, add a new command with the prefix that you want and add an API request to:  
+**Nightbot:**  
 `$(urlfetch https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>)`
 
-**Streamlabs Chatbot:**
+**Streamlabs Chatbot:**  
 `$readapi(https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>)`
 
-**Streamlabs Cloudbot:**
+**Streamlabs Cloudbot:**  
 `{readapi.https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>}`
 
-**Streamelements:**
+**Streamelements:**  
 `${customapi.https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>}`
 
-**Fossabot:**
+**Fossabot:**  
 `$(customapi https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>)`
 
-**Deepbot:**
+**Deepbot:**  
 `@customapi@[https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>]`
 
-**PhantomBot:**
+**PhantomBot:**  
 `(customapi https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>)`
 
-**Ohbot:**
+**Ohbot:**  
 `[customapi https://tm-info.digit-egifts.fr/read.php?type=<type>&username=<TM_username>&key=<private_key>]`
 
 *Parameters:*
@@ -115,17 +115,17 @@ To use this plugin on your preferred stream platform, add a new command with the
 - Private key: Your private key that has been given to you while authenticating
 
 ## What's different between this plugin and my old plugin "Twitch Chat Bot"
-[Twitch Chat Bot](https://openplanet.nl/files/113) was using [Nsgr Twitch Base](https://openplanet.nl/files/93) as a dependency, so it was still using the old plugin format. It was also working in a completely different way. It was connecting to the chat and was listening to any new messages, and answered as the streamer (ex: `bmx22c`) in the chat, instead of going through Streamlabs or something similar.
+[Twitch Chat Bot](https://openplanet.nl/files/113) was using [Nsgr Twitch Base](https://openplanet.nl/files/93) as a dependency, so it was still using the old plugin format. It was also working in a completely different way. It was connecting to the chat and was listening to any new messages, and answered as the streamer (ex: `bmx22c`) in the chat, instead of going through Streamlabs or something similar.  
 This **Twitch Chat Bot Renewed** is more of a bridge between a database and Streamlabs than a bot in itself.
 
 ## Legal Notice
-While logging in with your Ubisoft account, I will only get your Ubisoft username and account ID.
-All stored keys are hashed.
+While logging in with your Ubisoft account, I will only get your Ubisoft username and account ID.  
+All stored keys are hashed.  
 If you want me to remove your data from the database, just send me a message on Discord with your Trackmania username: `bmx22c#0001`.
 
 ## Special thanks
-Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79) (Prayge one day we'll be able to use other plugins functions)
-Thanks to **tooInfinite** for the help on the Trackmania API
+Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79) (Prayge one day we'll be able to use other plugins functions)  
+Thanks to **tooInfinite** for the help on the Trackmania API  
 Thanks to **Miss** for the server information (YOINKED it from the Discord script)
 
 
