@@ -1,5 +1,5 @@
 // Thanks to PHLARX for the CP counter (https://openplanet.nl/files/79)
-// Thanks to toolinfinite for the help on the Trackmania API
+// Thanks to tooInfinite for the help on the Trackmania API
 // Thanks to Miss for the server informations (YOINKED it from the Discord script)
 
 enum FormattingType
@@ -67,7 +67,7 @@ string Setting_StringNoCurrentURL;
 
 string mapId = "";
 string serverLogin = "";
-int nbrPlayers = 0;
+int nbrPlayers = -1;
 string previousTime = '';
 
 bool isAuthenticated = false;
@@ -76,6 +76,7 @@ bool mapFound = false;
 bool checkedInMenu = false;
 bool bypass = false;
 bool oldStatus = false;
+string previousAuthenticated = '';
 
 bool inGame = false;
 bool strictMode = false;
@@ -242,6 +243,8 @@ int GetServerPosition()
 
 void ResetServerInfo()
 {
+	serverLogin = '';
+	nbrPlayers = -1;
 	string json = '{"inServer":"false", "custom_formatting":"'+Setting_StringCurrentServer+'", "custom_formatting_false": "'+Setting_StringNoCurrentServer+'"}';
 	SendInformations("server", json, Setting_Username, Setting_Key);
 }
@@ -258,14 +261,22 @@ void IsAuthenticated()
 	string res = req.String();
 	print(res);
 	if(res == '1'){
-		Setting_Active = true;
-		isAuthenticated = true;
-		activeColor = colorGreen;
-		UI::ShowNotification(Icons::Check + " Twitch Chat Bot", "You are now connected and active !", UI::HSV(0.25, 0.5, 0.5));
+		if(previousAuthenticated != res){
+			previousAuthenticated = res;
+			
+			Setting_Active = true;
+			isAuthenticated = true;
+			activeColor = colorGreen;
+			UI::ShowNotification(Icons::Check + " Twitch Chat Bot", "You are now connected and active !", UI::HSV(0.25, 0.5, 0.5));
+		}
 	}else{
-		Setting_Active = false;
-		isAuthenticated = false;
-		activeColor = colorRed;
+		if(previousAuthenticated != res){
+			previousAuthenticated = res;
+
+			Setting_Active = false;
+			isAuthenticated = false;
+			activeColor = colorRed;
+		}
 	}
 	startnew(CoroutineFunc(SendStatus));
 }
@@ -327,17 +338,15 @@ void Url()
 void ServerInfo()
 {
 	auto serverInfo = cast<CGameCtnNetServerInfo>(g_app.Network.ServerInfo);
-	if (serverInfo.ServerLogin != "" && serverLogin != serverInfo.ServerLogin) {
+	if (serverInfo.ServerLogin != "") {
 		serverLogin = serverInfo.ServerLogin;
-		print(serverLogin);
 		string serverName = StripFormatCodes(serverInfo.ServerName);
 		int numPlayers = g_app.ChatManagerScript.CurrentServerPlayerCount - 1;
 		int maxPlayers = g_app.ChatManagerScript.CurrentServerPlayerCountMax;
 
-
 		if(nbrPlayers != numPlayers){
 			nbrPlayers = numPlayers;
-
+			
 			string json = '{"inServer":"true", "name":"'+serverName+'","nbrPlayer":"'+numPlayers+'", "maxPlayer":"'+maxPlayers+'", "custom_formatting":"'+Setting_StringCurrentServer+'", "custom_formatting_false": "'+Setting_StringNoCurrentServer+'"}';
 			SendInformations("server", json, Setting_Username, Setting_Key);
 		}
@@ -504,6 +513,7 @@ void CheckMap()
 			
 			if(Setting_PbCommand) SendPb();
 			if(Setting_LinkCommand) SendUrl();
+			if(Setting_ServerCommand) ServerInfo();
 			
 			bypass = false;
 		}
