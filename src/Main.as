@@ -8,13 +8,11 @@ enum FormattingType
 	Custom
 }
 
-// [Setting category="General" name="Active"]
 bool Setting_Active = false;
 
 [Setting category="General" name="Key" password description="If you don't have a key, click on: Scripts > Twitch Chat Bot > Authenticate"]
 string Setting_Key;
 
-// [Setting category="General" name="Trackmania Username"]
 string Setting_Username = '';
 
 [Setting category="General" name="Formatting" description="Fixed: Pre-formatted strings. Custom: Set your custom presets in the \"Strings\" tab."]
@@ -47,7 +45,7 @@ string Setting_StringCurrentServer;
 [Setting category="Strings" name="Current personnal best time" description="{pb}"]
 string Setting_StringCurrentPersonnalBest;
 
-[Setting category="Strings" name="Current map URL" description="{url}"]
+[Setting category="Strings" name="Current map URL" description="{TMXurl} {TMIOurl}"]
 string Setting_StringCurrentURL;
 
 [Setting category="Strings" name="Current CP" description="{crt_cp} {max_cp}"]
@@ -77,6 +75,7 @@ bool checkedInMenu = false;
 bool bypass = false;
 bool oldStatus = false;
 string previousAuthenticated = '';
+bool previousInMenu = true;
 
 bool inGame = false;
 bool strictMode = false;
@@ -132,20 +131,13 @@ void Main() {
 void OnDestroyed()
 {
 	Setting_Active = false;
-
 	string json = '{"active":'+(Setting_Active ? "true" : "false")+', "custom_formatting_not_active":"'+Setting_StringNotActive+'"}';
-	// SendInformations("settings", json, Setting_Username, Setting_Key);
 
-	// startnew(CoroutineFunc(SendStatus));
 	Net::HttpRequest req;
 	req.Method = Net::HttpMethod::Post;
 	req.Url = "https://tm-info.digit-egifts.fr/submit.php";
 	req.Body = "type="+Net::UrlEncode("settings")+"&content="+Net::UrlEncode(json)+"&username="+Net::UrlEncode(Setting_Username)+"&key="+Net::UrlEncode(Setting_Key);
 	req.Start();
-	// while (!req.Finished()) {
-	// 	yield();
-	// }
-	// TODO - Handle bad request/fails
 	req.String();
 
 }
@@ -223,8 +215,6 @@ void SendInformations(string type, string content, string username, string key)
 	while (!req.Finished()) {
 		yield();
 	}
-	// TODO - Handle bad request/fails
-	// print(req.String());
 }
 
 int GetServerPosition()
@@ -245,6 +235,7 @@ void ResetServerInfo()
 {
 	serverLogin = '';
 	nbrPlayers = -1;
+
 	string json = '{"inServer":"false", "custom_formatting":"'+Setting_StringCurrentServer+'", "custom_formatting_false": "'+Setting_StringNoCurrentServer+'"}';
 	SendInformations("server", json, Setting_Username, Setting_Key);
 }
@@ -259,7 +250,7 @@ void IsAuthenticated()
 		yield();
 	}
 	string res = req.String();
-	print(res);
+
 	if(res == '1'){
 		if(previousAuthenticated != res){
 			previousAuthenticated = res;
@@ -345,10 +336,17 @@ void ServerInfo()
 		int maxPlayers = g_app.ChatManagerScript.CurrentServerPlayerCountMax;
 
 		if(nbrPlayers != numPlayers){
+			previousInMenu = false;
 			nbrPlayers = numPlayers;
-			
+
 			string json = '{"inServer":"true", "name":"'+serverName+'","nbrPlayer":"'+numPlayers+'", "maxPlayer":"'+maxPlayers+'", "custom_formatting":"'+Setting_StringCurrentServer+'", "custom_formatting_false": "'+Setting_StringNoCurrentServer+'"}';
 			SendInformations("server", json, Setting_Username, Setting_Key);
+		}
+	}else{
+		if(previousInMenu == false){
+			previousInMenu = true;
+
+			ResetServerInfo();
 		}
 	}
 }
@@ -401,7 +399,6 @@ void Authenticate()
 		yield();
 	}
 	string uniqueCode = req.String();
-	// print(uniqueCode);
 
 	string json = '{"api_state":"'+uniqueCode+'"}';
 	SendInformations("settings", json, Setting_Username, Setting_Key);
@@ -507,7 +504,7 @@ void CheckMap()
 		if(bypass == true  || (mapId != currentMap.EdChallengeId || inMenu == true))
 		{
 			mapId = currentMap.EdChallengeId;
-			print("Map changed v2");
+
 			string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
 			SendInformations("map", json, Setting_Username, Setting_Key);
 			
