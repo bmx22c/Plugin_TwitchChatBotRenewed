@@ -430,6 +430,8 @@ void SendSettings()
 
 void SendPb()
 {
+	// BUG: When you are out in TOTD
+	// it says that you are not on a map
 	auto currentMap = GetCurrentMap();
 	if (currentMap !is null) {
 		checkedInMenu = false;
@@ -481,7 +483,7 @@ void SendUrl()
 		try {
 			if (returnedObject.get_Length() > 0) {
 				int g_MXId = returnedObject[0]["TrackID"];
-				string json = '{"inMap":"true", "found":true, "tmxID":"'+g_MXId+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
+				string json = '{"inMap":"true", "found":true, "tmxID":"'+g_MXId+'", "UID": "'+UIDMap+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
 				SendInformations("url", json, Setting_Username, Setting_Key);
 			} else {
 				string json = '{"inMap":"true", "found":false, "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
