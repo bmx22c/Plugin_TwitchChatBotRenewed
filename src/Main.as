@@ -36,7 +36,7 @@ bool Setting_CPCommand = true;
 [Setting category="Strings" name="Not active" description="What will be displayed when you're not active anymore."]
 string Setting_StringNotActive;
 
-[Setting category="Strings" name="Current map" description="{name} {author}"]
+[Setting category="Strings" name="Current map" description="{name} {author} {author_time}"]
 string Setting_StringCurrentMap;
 
 [Setting category="Strings" name="Current server" description="{name} {nbr_player} {max_player}"]
@@ -85,6 +85,8 @@ string colorRed = "$F30";
 string colorGreen = "$3C3";
 
 string curMap = "";
+
+string map_AT = "";
 
 uint preCPIdx = 0;
 uint curCP = 0;
@@ -355,6 +357,7 @@ void PbInfo()
 {
 	auto currentMap = GetCurrentMap();
 	if (currentMap !is null) {
+		// print('OUI');
 		checkedInMenu = false;
 		auto network = cast<CTrackManiaNetwork>(@g_app.Network);
 		auto userInfo = cast<CTrackManiaPlayerInfo>(network.PlayerInfo);
@@ -506,8 +509,9 @@ void CheckMap()
 		if(bypass == true  || (mapId != currentMap.EdChallengeId || inMenu == true))
 		{
 			mapId = currentMap.EdChallengeId;
+			map_AT = Time::Format(currentMap.TMObjective_AuthorTime);
 
-			string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
+			string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "author_time":"'+StripFormatCodes(map_AT)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
 			SendInformations("map", json, Setting_Username, Setting_Key);
 			
 			if(Setting_PbCommand) SendPb();
