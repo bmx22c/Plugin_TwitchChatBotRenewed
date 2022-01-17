@@ -55,6 +55,7 @@ You will have variables available for every command:
 - Map:
     - `{name}` - map name
     - `{author}` - map author
+    - `{author_time}` - map author time
 - Server:
     - `{name}` - server name
     - `{nbr_player}` - current player count
