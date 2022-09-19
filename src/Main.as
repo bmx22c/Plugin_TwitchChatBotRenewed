@@ -219,20 +219,6 @@ void SendInformations(string type, string content, string username, string key)
 	}
 }
 
-int GetServerPosition()
-{
-	if (g_app.CurrentPlayground is null) {
-		return 0;
-	}
-
-	auto interfaceTM = cast<CTrackManiaRaceInterface>(g_app.CurrentPlayground.Interface);
-	if (interfaceTM is null) {
-		return 0;
-	}
-
-	return interfaceTM.PlayerGeneralPosition;
-}
-
 void ResetServerInfo()
 {
 	serverLogin = '';
