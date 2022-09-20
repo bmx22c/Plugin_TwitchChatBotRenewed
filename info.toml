@@ -4,7 +4,4 @@ author = "bmx22c"
 category = "Streaming"
 
 siteid = 142
-version = "1.2"
-
-[script]
-imports = [ "Time.as", "Formatting.as", "Icons.as" ]
+version = "1.3"
