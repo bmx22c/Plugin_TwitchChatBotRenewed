@@ -47,8 +47,9 @@ List of all `Fixed` strings:
 - Not on a server: `⚠ I am currently not on a server.`
 - Personal best: `⏩ My current pb is {pb}s.`
 - No personal best: `⚠ I don't have a pb on that map.`
-- TMX URL: `⏩ Map URL: {url}`
+- URL: `⏩ Map URL:  {TMXurl} | Map leaderboard: {TMIOurl}`
 - Map not found on TMX: `⚠ Map not found on TMX.`
+- Map UID not sent: `⚠ UID Not sent.` (shouldn't happen unless you didn't update your plugin)
 - Checkpoint: `⏩ Current CP: {crt_cp}/{max_cp}.`
 
 ### Commands
