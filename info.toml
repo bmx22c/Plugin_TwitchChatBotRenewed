@@ -4,4 +4,8 @@ author = "bmx22c"
 category = "Streaming"
 
 siteid = 142
-version = "1.3"
+version = "1.5"
+
+[script]
+dependencies = [ "CP" ]
+optional_dependencies = [ "PlayerState" ]

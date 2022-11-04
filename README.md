@@ -16,6 +16,12 @@ Plugins/
 ├─ TwitchChatBot.op
 ```
 
+## Dependency
+This plugin now uses the Checkpoint Counter plugin as a dependency, thanks to Phlarx.  
+If you don't have this plugin, any checkpoint related commands will be disabled.  
+
+You can download the plugin [here](https://openplanet.dev/plugin/checkpointcounter).
+
 ## Settings
 ### Parameters
 You will need to register with your Ubisoft account (the same as your Trackmania account otherwise it won't work) by clicking on:  
@@ -63,7 +69,8 @@ You will have variables available for every command:
 - Personal best time:
     - `{pb}` - personal best time
 - URL:
-    - `{url}` - map URL on TMX
+    - `{TMXurl}` - map URL on [Trackmania Exchange](https://trackmania.exchange/)
+    - `{TMIOurl}` - map URL on [trackmania.io](https://trackmania.io/)
 - Checkpoint:
     - `{crt_cp}` - current CP
     - `{max_cp}` - number of CPs on the map
@@ -125,9 +132,9 @@ All stored keys are hashed.
 If you want me to remove your data from the database, just send me a message on Discord with your Trackmania username: `bmx22c#0001`.
 
 ## Special thanks
-Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79) (Prayge one day we'll be able to use other plugins functions)  
+Thanks to **PHLARX** for the [CP counter](https://openplanet.nl/files/79)  
 Thanks to **tooInfinite** for the help on the Trackmania API  
-Thanks to **Miss** for the server information (YOINKED it from the Discord script)
+Thanks to **Miss** and the **Openplanet Discord** for the server information help  
 
 
 ## Contributing
