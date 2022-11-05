@@ -368,29 +368,37 @@ void PbInfo()
 		string UIDMap = currentMap.MapInfo.MapUid;
 
 		// Thanks Phlarx for this
-		auto userInfo = network.ClientManiaAppPlayground.UserMgr;
-		MwId userId;
-		if (userInfo.Users.Length > 0) {
-			userId = userInfo.Users[0].Id;
-		} else {
-			userId.Value = uint(-1);
-		}
-		
-		auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
-
-		if(temps != 4294967295 && temps != 0){
-			string tmp = Setting_StringCurrentPersonnalBest;
-			tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
-
-			string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
-			if(previousContentPB != json){
-				previousContentPB = json;
-				SendInformations("pb", json, Setting_Username, Setting_Key);
+		if(network.ClientManiaAppPlayground != null){
+			auto userInfo = network.ClientManiaAppPlayground.UserMgr;
+			MwId userId;
+			if (userInfo.Users.Length > 0) {
+				userId = userInfo.Users[0].Id;
+			} else {
+				userId.Value = uint(-1);
 			}
-		} else {
-			string tmp = Setting_StringNoCurrentPersonnalBest;
+			
+			auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
 
-			string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+			if(temps != 4294967295 && temps != 0){
+				string tmp = Setting_StringCurrentPersonnalBest;
+				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+
+				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
+				if(previousContentPB != json){
+					previousContentPB = json;
+					SendInformations("pb", json, Setting_Username, Setting_Key);
+				}
+			} else {
+				string tmp = Setting_StringNoCurrentPersonnalBest;
+
+				string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+				if(previousContentPB != json){
+					previousContentPB = json;
+					SendInformations("pb", json, Setting_Username, Setting_Key);
+				}
+			}
+		}else{
+			string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
 			if(previousContentPB != json){
 				previousContentPB = json;
 				SendInformations("pb", json, Setting_Username, Setting_Key);
@@ -460,27 +468,35 @@ void SendPb()
 		string UIDMap = currentMap.MapInfo.MapUid;
 
 		// Thanks Phlarx for this
-		auto userInfo = network.ClientManiaAppPlayground.UserMgr;
-		MwId userId;
-		if (userInfo.Users.Length > 0) {
-			userId = userInfo.Users[0].Id;
-		} else {
-			userId.Value = uint(-1);
-		}
-		
-		auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
-
-		if(temps != 4294967295 && temps != 0){
-			string tmp = Setting_StringCurrentPersonnalBest;
-			tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
-
-			string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-			if(previousContentPB != json){
-				previousContentPB = json;
-				SendInformations("pb", json, Setting_Username, Setting_Key);
+		if(network.ClientManiaAppPlayground != null){
+			auto userInfo = network.ClientManiaAppPlayground.UserMgr;
+			MwId userId;
+			if (userInfo.Users.Length > 0) {
+				userId = userInfo.Users[0].Id;
+			} else {
+				userId.Value = uint(-1);
 			}
-		} else {
-			string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+			
+			auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
+
+			if(temps != 4294967295 && temps != 0){
+				string tmp = Setting_StringCurrentPersonnalBest;
+				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+
+				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+				if(previousContentPB != json){
+					previousContentPB = json;
+					SendInformations("pb", json, Setting_Username, Setting_Key);
+				}
+			} else {
+				string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+				if(previousContentPB != json){
+					previousContentPB = json;
+					SendInformations("pb", json, Setting_Username, Setting_Key);
+				}
+			}
+		}else{
+			string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
 			if(previousContentPB != json){
 				previousContentPB = json;
 				SendInformations("pb", json, Setting_Username, Setting_Key);
