@@ -596,6 +596,7 @@ void ResetCPCounter()
 
 void CPCounter()
 {
+#if DEPENDENCY_CHECKPOINTCOUNTER
 	if(!CP::inGame){
 		string json = '{"inMap":"false", "crt_cp": 0, "max_cp": 0, "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
 		if(previousContentCP != json){
@@ -609,4 +610,5 @@ void CPCounter()
 			SendInformations("cp", json, Setting_Username, Setting_Key);
 		}
 	}
+#endif
 }
