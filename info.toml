@@ -4,8 +4,7 @@ author = "bmx22c"
 category = "Streaming"
 
 siteid = 142
-version = "1.5"
+version = "1.6"
 
 [script]
-dependencies = [ "CP" ]
-optional_dependencies = [ "PlayerState" ]
+optional_dependencies = [ "CheckpointCounter" ]
