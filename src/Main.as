@@ -420,14 +420,11 @@ void PbInfo()
 
 void Authenticate()
 {
-	Net::HttpRequest req;
-	req.Method = Net::HttpMethod::Get;
-	req.Url = "https://password.markei.nl/randomsave.txt?count=1&min/max=16";
-	req.Start();
-	while (!req.Finished()) {
-		yield();
+	int nLoops = 2 + Time::Now % 10 + Time::Stamp % 10;
+	string uniqueCode = Hash::Sha256("" + Math::Rand(-2000000000, 2000000000) + Time::Now + Time::Stamp);
+	for (int i = 0; i < nLoops; i++) {
+		uniqueCode = Hash::Sha256(uniqueCode + Math::Rand(-2000000000, 2000000000) + Time::Now + Time::Stamp);
 	}
-	string uniqueCode = req.String();
 
 	string json = '{"api_state":"'+uniqueCode+'"}';
 	SendInformations("settings", json, Setting_Username, Setting_Key);

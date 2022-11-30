@@ -4,7 +4,7 @@ author = "bmx22c"
 category = "Streaming"
 
 siteid = 142
-version = "1.7"
+version = "1.8"
 
 [script]
 optional_dependencies = [ "CheckpointCounter" ]
