@@ -158,8 +158,6 @@ void OnDestroyed()
 	req.Url = "https://tm-info.digit-egifts.fr/submit.php";
 	req.Body = "type="+Net::UrlEncode("settings")+"&content="+Net::UrlEncode(json)+"&username="+Net::UrlEncode(Setting_Username)+"&key="+Net::UrlEncode(Setting_Key);
 	req.Start();
-	req.String();
-
 }
 
 void RenderMenu()
@@ -227,7 +225,6 @@ string Replace(const string &in search, const string &in  replace, const string 
 
 void SendInformations(const string &in  type, const string &in  content, const string &in  username, const string &in  key)
 {
-	print(type+": "+content);
 	Net::HttpRequest req;
 	req.Method = Net::HttpMethod::Post;
 	req.Url = "https://tm-info.digit-egifts.fr/submit.php";
@@ -420,16 +417,12 @@ void PbInfo()
 
 void Authenticate()
 {
-	int nLoops = 2 + Time::Now % 10 + Time::Stamp % 10;
-	string uniqueCode = Hash::Sha256("" + Math::Rand(-2000000000, 2000000000) + Time::Now + Time::Stamp);
-	for (int i = 0; i < nLoops; i++) {
-		uniqueCode = Hash::Sha256(uniqueCode + Math::Rand(-2000000000, 2000000000) + Time::Now + Time::Stamp);
-	}
+	string secureDing = Crypto::RandomBase64(32, true);
 
-	string json = '{"api_state":"'+uniqueCode+'"}';
+	string json = '{"api_state":"'+secureDing+'"}';
 	SendInformations("settings", json, Setting_Username, Setting_Key);
 
-	OpenBrowserURL('https://api.trackmania.com/oauth/authorize?response_type=code&client_id=915a708930788b5ecd10&scope=&redirect_uri=https://tm-info.digit-egifts.fr/redirect.php&state='+uniqueCode);
+	OpenBrowserURL('https://api.trackmania.com/oauth/authorize?response_type=code&client_id=915a708930788b5ecd10&scope=&redirect_uri=https://tm-info.digit-egifts.fr/redirect.php&state='+secureDing);
 }
 
 void SendStatus()
