@@ -141,5 +141,5 @@ Thanks to **Miss** and the **Openplanet Discord** for the server information hel
 ## Contributing
 Pull requests are welcome on [this repo](https://github.com/bmx22c/Plugin_TwitchChatBotRenewed). For major changes, please open an issue first to discuss what you would like to change.
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+## License 🏳️
+Distributed under the [MIT](https://github.com/bmx22c/Plugin_TwitchChatBotRenewed?tab=MIT-1-ov-file) License. See LICENSE for more information.
