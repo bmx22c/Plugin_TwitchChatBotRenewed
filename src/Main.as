@@ -2,6 +2,8 @@
 // Thanks to tooInfinite for the help on the Trackmania API
 // Thanks to Miss for the server informations (YOINKED it from the Discord script)
 
+// TODO: Fix Strings not sending live but updates when Active is changed
+
 enum FormattingType
 {
 	Fixed,
@@ -18,6 +20,10 @@ string Setting_Username = '';
 [Setting category="General" name="Formatting" description="Fixed: Pre-formatted strings. Custom: Set your custom presets in the \"Strings\" tab."]
 FormattingType Setting_Formatting;
 
+[Setting category="General" name="Twitch Username" description="Your Twitch username to confirm that it\'s you that tries to access your data. Ignore if you don\' use the Twitch extension."]
+string Setting_TwitchUsername = "";
+// Send the Twitch username to the database
+
 [Setting category="Commands" name="Enable map command" description="No information will be sent to the server if disabled"]
 bool Setting_MapCommand = true;
 
@@ -30,12 +36,8 @@ bool Setting_PbCommand = true;
 [Setting category="Commands" name="Enable URL command" description="No information will be sent to the server if disabled"]
 bool Setting_LinkCommand = true;
 
-#if DEPENDENCY_CHECKPOINTCOUNTER
 [Setting category="Commands" name="Enable CP command" description="No information will be sent to the server if disabled"]
 bool Setting_CPCommand = true;
-#else
-bool Setting_CPCommand = false;
-#endif
 
 [Setting category="Strings" name="Not active" description="What will be displayed when you're not active anymore."]
 string Setting_StringNotActive;
@@ -52,12 +54,8 @@ string Setting_StringCurrentPersonnalBest;
 [Setting category="Strings" name="Current map URL" description="{TMXurl} {TMIOurl}"]
 string Setting_StringCurrentURL;
 
-#if DEPENDENCY_CHECKPOINTCOUNTER
 [Setting category="Strings" name="Current CP" description="{crt_cp} {max_cp}"]
 string Setting_StringCurrentCP;
-#else
-string Setting_StringCurrentCP = "";
-#endif
 
 [Setting category="Strings" name="Not in a map"]
 string Setting_StringNoCurrentMap;
@@ -70,8 +68,6 @@ string Setting_StringNoCurrentPersonnalBest;
 
 [Setting category="Strings" name="Map not found"]
 string Setting_StringNoCurrentURL;
-
-// UI::ShowNotification(Icons::Check + " Twitch Chat Bot", "You are now connected and active !", UI::HSV(0.25, 0.5, 0.5));
 
 string mapId = "";
 string serverLogin = "";
@@ -105,11 +101,9 @@ int previousCurrCP = 0;
 int previousMaxCP = 0;
 bool checkedNoCP = false;
 
-string previousContentCP = "";
-string previousContentPB = "";
-
 CTrackMania@ g_app;
 CTrackManiaNetwork@ network;
+CTrackManiaNetworkServerInfo@ server_info;
 CGameCtnChallenge@ GetCurrentMap()
 {
 #if MP41 || TMNEXT
@@ -122,16 +116,12 @@ CGameCtnChallenge@ GetCurrentMap()
 void Main() {
 	@g_app = cast<CTrackMania>(GetApp());
 	@network = cast<CTrackManiaNetwork>(GetApp().Network);
+	@server_info = cast<CTrackManiaNetworkServerInfo>(network.ServerInfo);
 
 	Setting_Username = network.PlayerInfo.Name;
 	if(Setting_Username == ''){
 		UI::ShowNotification(Icons::ExclamationTriangle + " Error !", "Couldn't get your Trackmania username !", UI::HSV(0, 0.5, 0.5));
 	}
-
-#if !DEPENDENCY_CHECKPOINTCOUNTER
-	UI::ShowNotification(Icons::ExclamationTriangle + " Twitch Chat Bot", "Checkpoint Counter dependency not installed, checkpoint related commands will be disabled.", UI::HSV(.1, .8, .8));
-	warn("Checkpoint Counter dependency not installed, checkpoint related commands will be disabled.");
-#endif
 
 	IsAuthenticated();
 
@@ -158,6 +148,8 @@ void OnDestroyed()
 	req.Url = "https://tm-info.digit-egifts.fr/submit.php";
 	req.Body = "type="+Net::UrlEncode("settings")+"&content="+Net::UrlEncode(json)+"&username="+Net::UrlEncode(Setting_Username)+"&key="+Net::UrlEncode(Setting_Key);
 	req.Start();
+	req.String();
+
 }
 
 void RenderMenu()
@@ -218,21 +210,38 @@ void OnSettingsChanged()
 	}
 }
 
-string Replace(const string &in search, const string &in  replace, const string &in  subject)
+string Replace(string search, string replace, string subject)
 {
 	return Regex::Replace(subject, search, replace);
 }
 
-void SendInformations(const string &in  type, const string &in  content, const string &in  username, const string &in  key)
+void SendInformations(string type, string content, string username, string key)
 {
 	Net::HttpRequest req;
-	req.Method = Net::HttpMethod::Post;
-	req.Url = "https://tm-info.digit-egifts.fr/submit.php";
-	req.Body = "type="+Net::UrlEncode(type)+"&content="+Net::UrlEncode(content)+"&username="+Net::UrlEncode(username)+"&key="+Net::UrlEncode(key);
+	req.Method = Net::HttpMethod::Get;
+	// req.Url = "https://tm-info.digit-egifts.fr/submit.php";
+	// req.Url = "https://tm-info.herokuapp.com/submit?type="+Net::UrlEncode(type)+"&content="+Net::UrlEncode(content)+"&username="+Net::UrlEncode(username)+"&key="+Net::UrlEncode(key);
+	req.Url = "http://localhost:3000/submit?type="+Net::UrlEncode(type)+"&content="+Net::UrlEncode(content)+"&username="+Net::UrlEncode(username)+"&key="+Net::UrlEncode(key);
+	// req.Body = "type="+Net::UrlEncode(type)+"&content="+Net::UrlEncode(content)+"&username="+Net::UrlEncode(username)+"&key="+Net::UrlEncode(key);
+	print(req.Url);
 	req.Start();
 	while (!req.Finished()) {
 		yield();
 	}
+}
+
+int GetServerPosition()
+{
+	if (g_app.CurrentPlayground is null) {
+		return 0;
+	}
+
+	auto interfaceTM = cast<CTrackManiaRaceInterface>(g_app.CurrentPlayground.Interface);
+	if (interfaceTM is null) {
+		return 0;
+	}
+
+	return interfaceTM.PlayerGeneralPosition;
 }
 
 void ResetServerInfo()
@@ -296,12 +305,12 @@ void Url()
 		// Evaluate reqest result
 		Json::Value returnedObject = Json::Parse(response);
 		try {
-			if (returnedObject.Length > 0) {
+			if (returnedObject.get_Length() > 0) {
 				if(mapFound == false){
 					mapFound = true;
 
 					int g_MXId = returnedObject[0]["TrackID"];
-					string json = '{"inMap":"true", "found":true, "tmxID":"'+g_MXId+'", "UID": "'+UIDMap+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
+					string json = '{"inMap":"true", "found":true, "tmxID":"'+g_MXId+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
 					SendInformations("url", json, Setting_Username, Setting_Key);
 				}
 			} else {
@@ -336,9 +345,8 @@ void ServerInfo()
 	if (serverInfo.ServerLogin != "") {
 		serverLogin = serverInfo.ServerLogin;
 		string serverName = StripFormatCodes(serverInfo.ServerName);
-
-		int numPlayers = g_app.Network.PlayerInfos.Length - 1;
-		int maxPlayers = serverInfo.MaxPlayerCount;
+		int numPlayers = g_app.ChatManagerScript.CurrentServerPlayerCount - 1;
+		int maxPlayers = g_app.ChatManagerScript.CurrentServerPlayerCountMax;
 
 		if(nbrPlayers != numPlayers){
 			previousInMenu = false;
@@ -360,46 +368,29 @@ void PbInfo()
 {
 	auto currentMap = GetCurrentMap();
 	if (currentMap !is null) {
+		// print('OUI');
 		checkedInMenu = false;
 		auto network = cast<CTrackManiaNetwork>(@g_app.Network);
+		auto userInfo = cast<CTrackManiaPlayerInfo>(network.PlayerInfo);
+		auto userId = userInfo.Id;
 		string UIDMap = currentMap.MapInfo.MapUid;
+		
+		auto temps = cast<CTrackManiaMenus@>(g_app.MenuManager).MenuCustom_CurrentManiaApp.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
 
-		// Thanks Phlarx for this
-		if(network.ClientManiaAppPlayground != null){
-			auto userInfo = network.ClientManiaAppPlayground.UserMgr;
-			MwId userId;
-			if (userInfo.Users.Length > 0) {
-				userId = userInfo.Users[0].Id;
-			} else {
-				userId.Value = uint(-1);
-			}
-			
-			auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
-
-			if(temps != 4294967295 && temps != 0){
-				string tmp = Setting_StringCurrentPersonnalBest;
-				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+		if(temps != 4294967295 && temps != 0){
+			string tmp = Setting_StringCurrentPersonnalBest;
+			tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+			if(previousTime != Time::Format(temps)){
+				previousTime = Time::Format(temps);
 
 				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
-				if(previousContentPB != json){
-					previousContentPB = json;
-					SendInformations("pb", json, Setting_Username, Setting_Key);
-				}
-			} else {
-				string tmp = Setting_StringNoCurrentPersonnalBest;
-
-				string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-				if(previousContentPB != json){
-					previousContentPB = json;
-					SendInformations("pb", json, Setting_Username, Setting_Key);
-				}
-			}
-		}else{
-			string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
-			if(previousContentPB != json){
-				previousContentPB = json;
 				SendInformations("pb", json, Setting_Username, Setting_Key);
 			}
+		} else {
+			string tmp = Setting_StringNoCurrentPersonnalBest;
+
+			string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+			SendInformations("pb", json, Setting_Username, Setting_Key);
 		}
 	} else {
 		string tmp = Setting_StringNoCurrentMap;
@@ -407,22 +398,27 @@ void PbInfo()
 			checkedInMenu = true;
 
 			string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
-			if(previousContentPB != json){
-				previousContentPB = json;
-				SendInformations("pb", json, Setting_Username, Setting_Key);
-			}
+			SendInformations("pb", json, Setting_Username, Setting_Key);
 		}
 	}
 }
 
 void Authenticate()
 {
-	string secureDing = Crypto::RandomBase64(32, true);
+	Net::HttpRequest req;
+	req.Method = Net::HttpMethod::Get;
+	req.Url = "https://password.markei.nl/randomsave.txt?count=1&min/max=16";
+	req.Start();
+	while (!req.Finished()) {
+		yield();
+	}
+	string uniqueCode = req.String();
 
-	string json = '{"api_state":"'+secureDing+'"}';
+	string json = '{"api_state":"'+uniqueCode+'"}';
 	SendInformations("settings", json, Setting_Username, Setting_Key);
 
-	OpenBrowserURL('https://api.trackmania.com/oauth/authorize?response_type=code&client_id=915a708930788b5ecd10&scope=&redirect_uri=https://tm-info.digit-egifts.fr/redirect.php&state='+secureDing);
+	// OpenBrowserURL('https://api.trackmania.com/oauth/authorize?response_type=code&client_id=915a708930788b5ecd10&scope=&redirect_uri=https://tm-info.digit-egifts.fr/redirect.php&state='+uniqueCode);
+	OpenBrowserURL('https://api.trackmania.com/oauth/authorize?response_type=code&client_id=9a3748e462852e241238&scope=&redirect_uri=http://localhost:3000/redirect&state='+uniqueCode);
 }
 
 void SendStatus()
@@ -455,49 +451,28 @@ void SendPb()
 	if (currentMap !is null) {
 		checkedInMenu = false;
 		auto network = cast<CTrackManiaNetwork>(@g_app.Network);
+		auto userInfo = cast<CTrackManiaPlayerInfo>(network.PlayerInfo);
+		auto userId = userInfo.Id;
 		string UIDMap = currentMap.MapInfo.MapUid;
+		
+		auto temps = cast<CTrackManiaMenus@>(g_app.MenuManager).MenuCustom_CurrentManiaApp.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
 
-		// Thanks Phlarx for this
-		if(network.ClientManiaAppPlayground != null){
-			auto userInfo = network.ClientManiaAppPlayground.UserMgr;
-			MwId userId;
-			if (userInfo.Users.Length > 0) {
-				userId = userInfo.Users[0].Id;
-			} else {
-				userId.Value = uint(-1);
-			}
-			
-			auto temps = network.ClientManiaAppPlayground.ScoreMgr.Map_GetRecord_v2(userId, UIDMap, "PersonalBest", "", "TimeAttack", "");
-
-			if(temps != 4294967295 && temps != 0){
-				string tmp = Setting_StringCurrentPersonnalBest;
-				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+		if(temps != 4294967295 && temps != 0){
+			string tmp = Setting_StringCurrentPersonnalBest;
+			tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+			if(previousTime != Time::Format(temps)){
+				previousTime = Time::Format(temps);
 
 				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-				if(previousContentPB != json){
-					previousContentPB = json;
-					SendInformations("pb", json, Setting_Username, Setting_Key);
-				}
-			} else {
-				string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-				if(previousContentPB != json){
-					previousContentPB = json;
-					SendInformations("pb", json, Setting_Username, Setting_Key);
-				}
-			}
-		}else{
-			string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-			if(previousContentPB != json){
-				previousContentPB = json;
 				SendInformations("pb", json, Setting_Username, Setting_Key);
 			}
+		} else {
+			string json = '{"inMap":"true", "played":false, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
+			SendInformations("pb", json, Setting_Username, Setting_Key);
 		}
 	} else {
 		string json = '{"inMap":"false", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
-		if(previousContentPB != json){
-			previousContentPB = json;
-			SendInformations("pb", json, Setting_Username, Setting_Key);
-		}
+		SendInformations("pb", json, Setting_Username, Setting_Key);
 	}
 }
 
@@ -521,16 +496,16 @@ void SendUrl()
 		// Evaluate reqest result
 		Json::Value returnedObject = Json::Parse(response);
 		try {
-			if (returnedObject.Length > 0) {
+			if (returnedObject.get_Length() > 0) {
 				int g_MXId = returnedObject[0]["TrackID"];
 				string json = '{"inMap":"true", "found":true, "tmxID":"'+g_MXId+'", "UID": "'+UIDMap+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
 				SendInformations("url", json, Setting_Username, Setting_Key);
 			} else {
-				string json = '{"inMap":"true", "found":false, "UID": "'+UIDMap+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
+				string json = '{"inMap":"true", "found":false, "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
 				SendInformations("url", json, Setting_Username, Setting_Key);
 			}
 		} catch {
-			string json = '{"inMap":"true", "found":false, "UID": "'+UIDMap+'", "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
+			string json = '{"inMap":"true", "found":false, "custom_formatting":"'+Setting_StringCurrentURL+'", "custom_formatting_false": "'+Setting_StringNoCurrentURL+'"}';
 				SendInformations("url", json, Setting_Username, Setting_Key);
 		}
 	} else {
@@ -549,6 +524,7 @@ void CheckMap()
 			map_AT = Time::Format(currentMap.TMObjective_AuthorTime);
 
 			string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "author_time":"'+StripFormatCodes(map_AT)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
+			// string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
 			SendInformations("map", json, Setting_Username, Setting_Key);
 			
 			if(Setting_PbCommand) SendPb();
@@ -577,7 +553,6 @@ void CheckMap()
 	}
 }
 
-
 void ResetCPCounter()
 {
 	string json = '{"inMap":"false", "crt_cp": 0, "max_cp": 0, "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
@@ -586,19 +561,105 @@ void ResetCPCounter()
 
 void CPCounter()
 {
-#if DEPENDENCY_CHECKPOINTCOUNTER
-	if(!CP::inGame){
-		string json = '{"inMap":"false", "crt_cp": 0, "max_cp": 0, "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
-		if(previousContentCP != json){
-			previousContentCP = json;
+	auto playground = cast<CSmArenaClient>(GetApp().CurrentPlayground);
+  
+	if(playground is null
+		|| playground.Arena is null
+		|| playground.Map is null
+		|| playground.GameTerminals.Length <= 0
+		|| playground.GameTerminals[0].UISequence_Current != CGamePlaygroundUIConfig::EUISequence::Playing
+		|| cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer) is null) {
+			if(previousMaxCP != 0){
+				previousMaxCP = 0;
+				previousCurrCP = 0;
+				checkedNoCP = false;
+
+				string json = '{"inMap":"false", "crt_cp": 0, "max_cp": 0, "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
+				SendInformations("cp", json, Setting_Username, Setting_Key);
+			}
+			inGame = false;
+			return;
+	}
+
+	auto player = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer);
+	auto scriptPlayer = cast<CSmPlayer>(playground.GameTerminals[0].GUIPlayer).ScriptAPI;
+
+	if(scriptPlayer is null) {
+		previousMaxCP = 0;
+		inGame = false;
+		return;
+	}
+
+	if(playground.Interface is null || Dev::GetOffsetUint32(playground.Interface, 0x1C) == 0) {
+		previousMaxCP = 0;
+		inGame = false;
+		return;
+	}
+
+	if(player.CurrentLaunchedRespawnLandmarkIndex == uint(-1)) {
+		// sadly, can't see CPs of spectated players any more
+		previousMaxCP = 0;
+		inGame = false;
+		return;
+	}
+
+	MwFastBuffer<CGameScriptMapLandmark@> landmarks = playground.Arena.MapLandmarks;
+
+	if(!inGame && (curMap != playground.Map.IdName || GetApp().Editor !is null)) {
+		// keep the previously-determined CP data, unless in the map editor
+		curMap = playground.Map.IdName;
+		preCPIdx = player.CurrentLaunchedRespawnLandmarkIndex;
+		curCP = 0;
+		maxCP = 0;
+		strictMode = true;
+
+		array<int> links = {};
+		for(uint i = 0; i < landmarks.Length; i++) {
+			if(landmarks[i].Waypoint !is null && !landmarks[i].Waypoint.IsFinish && !landmarks[i].Waypoint.IsMultiLap) {
+				// we have a CP, but we don't know if it is Linked or not
+				if(landmarks[i].Tag == "Checkpoint") {
+					maxCP++;
+				} else if(landmarks[i].Tag == "LinkedCheckpoint") {
+					if(links.Find(landmarks[i].Order) < 0) {
+						maxCP++;
+						links.InsertLast(landmarks[i].Order);
+					}
+				} else {
+					// this waypoint looks like a CP, acts like a CP, but is not called a CP.
+					if(strictMode) {
+					warn("The current map, " + string(playground.Map.MapName) + " (" + playground.Map.IdName + "), is not compliant with checkpoint naming rules."
+							+ " If the CP count for this map is inaccurate, please report this map to Phlarx#1765 on Discord.");
+					}
+					maxCP++;
+					strictMode = false;
+				}
+			}
+		}
+
+		string json = '{"inMap":"true", "crt_cp": '+curCP+', "max_cp": '+maxCP+', "custom_formatting":"'+Setting_StringCurrentCP+'", "custom_formatting_false": ""}';
+		SendInformations("cp", json, Setting_Username, Setting_Key);
+	}
+	inGame = true;
+
+	if(preCPIdx != player.CurrentLaunchedRespawnLandmarkIndex && landmarks.Length > player.CurrentLaunchedRespawnLandmarkIndex) {
+		preCPIdx = player.CurrentLaunchedRespawnLandmarkIndex;
+
+		if(landmarks[preCPIdx].Waypoint is null || landmarks[preCPIdx].Waypoint.IsFinish || landmarks[preCPIdx].Waypoint.IsMultiLap) {
+			// if null, it's a start block. if the other flags, it's either a multilap or a finish.
+			// in all such cases, we reset the completed cp count to zero.
+			curCP = 0;
+			string json = '{"inMap":"true", "crt_cp": '+curCP+', "max_cp": '+maxCP+', "custom_formatting":"'+Setting_StringCurrentCP+'", "custom_formatting_false": ""}';
+			SendInformations("cp", json, Setting_Username, Setting_Key);
+		} else {
+			curCP++;
+			string json = '{"inMap":"true", "crt_cp": '+curCP+', "max_cp": '+maxCP+', "custom_formatting":"'+Setting_StringCurrentCP+'", "custom_formatting_false": ""}';
 			SendInformations("cp", json, Setting_Username, Setting_Key);
 		}
 	}else{
-		string json = '{"inMap":"true", "crt_cp": '+CP::curCP+', "max_cp": '+CP::maxCP+', "custom_formatting":"'+Setting_StringCurrentCP+'", "custom_formatting_false": ""}';
-		if(previousContentCP != json){
-			previousContentCP = json;
+		if(checkedNoCP == false && maxCP == 0){
+			string json = '{"inMap":"true", "crt_cp": 0, "max_cp": 0, "custom_formatting":"'+Setting_StringCurrentCP+'", "custom_formatting_false": ""}';
 			SendInformations("cp", json, Setting_Username, Setting_Key);
+			checkedNoCP = true;
 		}
 	}
-#endif
 }
