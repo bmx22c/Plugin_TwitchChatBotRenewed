@@ -2,10 +2,22 @@
 // Thanks to tooInfinite for the help on the Trackmania API
 // Thanks to Miss for the server informations (YOINKED it from the Discord script)
 
+const string pluginName = Meta::ExecutingPlugin().Name;
+
 enum FormattingType
 {
 	Fixed,
 	Custom
+}
+
+enum PollingRate
+{
+	Two_Seconds,
+	Five_Seconds,
+	Ten_Seconds,
+	Thirty_Seconds,
+	One_Minute,
+	Five_Minutes
 }
 
 bool Setting_Active = false;
@@ -17,6 +29,12 @@ string Setting_Username = '';
 
 [Setting category="General" name="Formatting" description="Fixed: Pre-formatted strings. Custom: Set your custom presets in the \"Strings\" tab."]
 FormattingType Setting_Formatting;
+
+[Setting category="General" name="Twitch Username" description="Your Twitch Username. Used to detect if you're live or not."]
+string Setting_TwitchUsername;
+
+[Setting category="General" name="Twitch polling rate" description="Polling rate when checking if you're live or not."]
+PollingRate Setting_PollingRate = PollingRate::Thirty_Seconds;
 
 [Setting category="Commands" name="Enable map command" description="No information will be sent to the server if disabled"]
 bool Setting_MapCommand = true;
@@ -129,7 +147,7 @@ void Main() {
 	}
 
 #if !DEPENDENCY_CHECKPOINTCOUNTER
-	UI::ShowNotification(Icons::ExclamationTriangle + " Twitch Chat Bot", "Checkpoint Counter dependency not installed, checkpoint related commands will be disabled.", UI::HSV(.1, .8, .8));
+	UI::ShowNotification(Icons::ExclamationTriangle + " " + pluginName, "Checkpoint Counter dependency not installed, checkpoint related commands will be disabled.", UI::HSV(.1, .8, .8));
 	warn("Checkpoint Counter dependency not installed, checkpoint related commands will be disabled.");
 #endif
 
@@ -162,7 +180,7 @@ void OnDestroyed()
 
 void RenderMenu()
 {
-	if (!UI::BeginMenu("\\$60f" + Icons::Brands::Twitch + "\\$9cf\\$z Twitch Chat Bot")) {
+	if (!UI::BeginMenu("\\$60f" + Icons::Brands::Twitch + "\\$9cf\\$z " + pluginName)) {
 		return;
 	}
 		if (UI::MenuItem("\\" + activeColor + Icons::Key + "\\$z Authenticate", "", false, !isAuthenticated)) {
@@ -179,7 +197,45 @@ void RenderMenu()
 			}
 
 		}
+		if (UI::MenuItem("Check if live", "", false)) {
+			startnew(CoroutineFunc(CheckIfLive));
+		}
 	UI::EndMenu();
+}
+
+void CheckIfLive()
+{
+	if(Setting_TwitchUsername != "" && Setting_Active){
+		int pollingRateTicks = 0;
+
+		while(true){
+			if(Setting_PollingRate == PollingRate::Two_Seconds) pollingRateTicks = 2000;
+			else if(Setting_PollingRate == PollingRate::Five_Seconds) pollingRateTicks = 5000;
+			else if(Setting_PollingRate == PollingRate::Ten_Seconds) pollingRateTicks = 10000;
+			else if(Setting_PollingRate == PollingRate::Thirty_Seconds) pollingRateTicks = 30000;
+			else if(Setting_PollingRate == PollingRate::One_Minute) pollingRateTicks = 60000;
+			else if(Setting_PollingRate == PollingRate::Five_Minutes) pollingRateTicks = 300000;
+
+			print("Checking if live...");
+			Net::HttpRequest req;
+			req.Method = Net::HttpMethod::Get;
+			req.Url = "https://twitch.tv/" + Setting_TwitchUsername;
+			req.Start();
+			while (!req.Finished()) {
+				yield();
+			}
+			string res = req.String();
+			print(res);
+			if(res.Contains("\"isLiveBroadcast\":true")){
+				print("IS LIVE");
+			}else{
+				print("IS NOT LIVE");
+			}
+
+			print("Next check in " + pollingRateTicks + "ms...");
+			sleep(pollingRateTicks);
+		}
+	}
 }
 
 void OnSettingsChanged()
@@ -262,7 +318,7 @@ void IsAuthenticated()
 			Setting_Active = true;
 			isAuthenticated = true;
 			activeColor = colorGreen;
-			UI::ShowNotification(Icons::Check + " Twitch Chat Bot", "You are now connected and active !", UI::HSV(0.25, 0.5, 0.5));
+			UI::ShowNotification(Icons::Check + " " + pluginName, "You are now connected and active !", UI::HSV(0.25, 0.5, 0.5));
 		}
 	}else{
 		if(previousAuthenticated != res){
