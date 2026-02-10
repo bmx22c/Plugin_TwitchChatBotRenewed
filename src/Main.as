@@ -166,16 +166,16 @@ void RenderMenu()
 		return;
 	}
 		if (UI::MenuItem("\\" + activeColor + Icons::Key + "\\$z Authenticate", "", false, !isAuthenticated)) {
-			startnew(CoroutineFunc(Authenticate));
+			startnew(Authenticate);
 		}
 		if (UI::MenuItem("\\$z" + Icons::PowerOff + "\\$z Active", "", Setting_Active)) {
 			Setting_Active = !Setting_Active;
 			activeColor = (Setting_Active ? colorGreen : colorRed);
 
 			if(Setting_Active == true){
-				startnew(CoroutineFunc(IsAuthenticated));
+				startnew(IsAuthenticated);
 			}else{
-				startnew(CoroutineFunc(SendStatus));
+				startnew(SendStatus);
 			}
 
 		}
@@ -188,17 +188,17 @@ void OnSettingsChanged()
 
 	if(Setting_Active)
 	{
-		startnew(CoroutineFunc(SendSettings));
-		if(Setting_MapCommand) startnew(CoroutineFunc(CheckMap));
-		if(Setting_ServerCommand) startnew(CoroutineFunc(ServerInfo));
-		if(Setting_PbCommand) startnew(CoroutineFunc(PbInfo));
-		if(Setting_LinkCommand) startnew(CoroutineFunc(Url));
-		if(Setting_CPCommand) startnew(CoroutineFunc(CPCounter));
-		startnew(CoroutineFunc(SendStatus));
+		startnew(SendSettings);
+		if(Setting_MapCommand) startnew(CheckMap);
+		if(Setting_ServerCommand) startnew(ServerInfo);
+		if(Setting_PbCommand) startnew(PbInfo);
+		if(Setting_LinkCommand) startnew(Url);
+		if(Setting_CPCommand) startnew(CPCounter);
+		startnew(SendStatus);
 	}else{
-		startnew(CoroutineFunc(SendStatus));
+		startnew(SendStatus);
 	}
-	startnew(CoroutineFunc(IsAuthenticated));
+	startnew(IsAuthenticated);
 
 	if(
 		Setting_StringCurrentMap == ''
@@ -214,7 +214,7 @@ void OnSettingsChanged()
 		if(Setting_Formatting == FormattingType::Custom){
 			UI::ShowNotification(Icons::ExclamationTriangle + " Error !", "You need to fill up every \"Strings\" fields !", UI::HSV(0, 0.5, 0.5));
 		}
-		Setting_Formatting = FormattingType::Fixed;
+		// Setting_Formatting = FormattingType::Fixed;
 	}
 }
 
@@ -273,7 +273,7 @@ void IsAuthenticated()
 			activeColor = colorRed;
 		}
 	}
-	startnew(CoroutineFunc(SendStatus));
+	startnew(SendStatus);
 }
 
 void Url()
@@ -335,7 +335,7 @@ void ServerInfo()
 	auto serverInfo = cast<CGameCtnNetServerInfo>(g_app.Network.ServerInfo);
 	if (serverInfo.ServerLogin != "") {
 		serverLogin = serverInfo.ServerLogin;
-		string serverName = StripFormatCodes(serverInfo.ServerName);
+		string serverName = Text::StripFormatCodes(serverInfo.ServerName);
 
 		int numPlayers = g_app.Network.PlayerInfos.Length - 1;
 		int maxPlayers = serverInfo.MaxPlayerCount;
@@ -378,7 +378,7 @@ void PbInfo()
 
 			if(temps != 4294967295 && temps != 0){
 				string tmp = Setting_StringCurrentPersonnalBest;
-				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+				tmp = Replace("\\{pb\\}", Text::StripFormatCodes(Time::Format(temps)), tmp);
 
 				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringCurrentPersonnalBest+'"}';
 				if(previousContentPB != json){
@@ -471,7 +471,7 @@ void SendPb()
 
 			if(temps != 4294967295 && temps != 0){
 				string tmp = Setting_StringCurrentPersonnalBest;
-				tmp = Replace("\\{pb\\}", StripFormatCodes(Time::Format(temps)), tmp);
+				tmp = Replace("\\{pb\\}", Text::StripFormatCodes(Time::Format(temps)), tmp);
 
 				string json = '{"inMap":"true", "played":true, "pb":"'+Time::Format(temps)+'", "custom_formatting":"'+Setting_StringCurrentPersonnalBest+'", "custom_formatting_false": "'+Setting_StringNoCurrentPersonnalBest+'"}';
 				if(previousContentPB != json){
@@ -548,7 +548,7 @@ void CheckMap()
 			mapId = currentMap.EdChallengeId;
 			map_AT = Time::Format(currentMap.TMObjective_AuthorTime);
 
-			string json = '{"inMap":"true", "name":"'+StripFormatCodes(currentMap.MapName)+'","author":"'+StripFormatCodes(currentMap.AuthorNickName)+'", "author_time":"'+StripFormatCodes(map_AT)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
+			string json = '{"inMap":"true", "name":"'+Text::StripFormatCodes(currentMap.MapName)+'","author":"'+Text::StripFormatCodes(currentMap.AuthorNickName)+'", "author_time":"'+Text::StripFormatCodes(map_AT)+'", "custom_formatting":"'+Setting_StringCurrentMap+'", "custom_formatting_false": "'+Setting_StringNoCurrentMap+'"}';
 			SendInformations("map", json, Setting_Username, Setting_Key);
 			
 			if(Setting_PbCommand) SendPb();
